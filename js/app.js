@@ -1209,7 +1209,7 @@
   }
 
   setInterval(schedule, 60000);              // 天顶位置每分钟刷新
-  setInterval(pollLive, 60000);              // 每分钟检查腾讯文档是否有更新
+  setInterval(pollLive, 30000);              // 每 30 秒检查一次最新数据
   applyLive(window.CRAFTS_LIVE);
   buildList();
   bindUI();
