@@ -43,7 +43,8 @@
     dpr: 1,
     W: 0,
     H: 0,
-    syncing: false
+    syncing: false,
+    sort: 'desc'
   };
 
   var planPath = null;
@@ -1081,9 +1082,15 @@
 
   /* ---------------- UI ---------------- */
 
+  function sortedStrips() {
+    return STRIPS.slice().sort(function (a, b) {
+      return state.sort === 'asc' ? a.dec - b.dec : b.dec - a.dec;
+    });
+  }
+
   function buildList() {
     var ul = $('#striplist');
-    ul.innerHTML = STRIPS.map(function (s) {
+    ul.innerHTML = sortedStrips().map(function (s) {
       return '<li data-id="' + s.id + '">' +
         '<span class="dot ' + s.status + '"></span>' +
         '<span class="sid">' + s.id + '</span>' +
@@ -1138,6 +1145,19 @@
     $('#q').addEventListener('input', function (e) { renderSuggest(e.target.value); });
 
     $('#refresh').addEventListener('click', refreshFromDocs);
+
+    var sortBox = document.getElementById('sort');
+    if (sortBox) {
+      sortBox.addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-sort]');
+        if (!b) return;
+        state.sort = b.getAttribute('data-sort');
+        Array.prototype.forEach.call(sortBox.querySelectorAll('button'), function (x) {
+          x.classList.toggle('active', x === b);
+        });
+        buildList();
+      });
+    }
     $('#zoomIn').addEventListener('click', function () { zoomAt(state.W / 2, state.H / 2, 1.45); });
     $('#zoomOut').addEventListener('click', function () { zoomAt(state.W / 2, state.H / 2, 1 / 1.45); });
     $('#reset').addEventListener('click', function () { resetView(); });

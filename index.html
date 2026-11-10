@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CRAFTS 条带天区查询 · FAST 19 波束漂移扫描</title>
-<link rel="stylesheet" href="css/style.css?v=20261110j">
+<link rel="stylesheet" href="css/style.css?v=20261110k">
 </head>
 <body>
 <div class="app">
@@ -61,7 +61,12 @@
 
     <section class="block">
       <div class="label"><span data-i18n="label.searched">已搜索条带</span>
-        <span class="count" id="obsCount"></span></div>
+        <span class="count" id="obsCount"></span>
+        <span class="sort" id="sort">
+          <button data-sort="desc" class="active" data-i18n="sort.desc">高→低</button>
+          <button data-sort="asc" data-i18n="sort.asc">低→高</button>
+        </span>
+      </div>
       <ul class="striplist" id="striplist"></ul>
     </section>
 
@@ -119,10 +124,10 @@
       : null
   };
 </script>
-<script src="js/data.js?v=20261110j"></script>
-<script src="js/live.js?v=20261110j"></script>
-<script src="js/i18n.js?v=20261110j"></script>
-<script src="js/astro.js?v=20261110j"></script>
-<script src="js/app.js?v=20261110j"></script>
+<script src="js/data.js?v=20261110k"></script>
+<script src="js/live.js?v=20261110k"></script>
+<script src="js/i18n.js?v=20261110k"></script>
+<script src="js/astro.js?v=20261110k"></script>
+<script src="js/app.js?v=20261110k"></script>
 </body>
 </html>

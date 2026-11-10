@@ -451,3 +451,29 @@ html, body {
 @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
 .icon.spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg) } }
+
+.sort {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid #22314d;
+  border-radius: 6px;
+  background: #0a1223;
+}
+.sort button {
+  padding: 1px 7px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #7f90ae;
+  font-size: 11px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.sort button:hover { color: #cfdcef; }
+.sort button.active {
+  background: rgba(95,168,255,.16);
+  color: #cfe4ff;
+}
