@@ -921,6 +921,8 @@
   function applyLive(live) {
     if (!live || !live.strips || !live.strips.length) return false;
     if (LIVE && LIVE.syncedAt === live.syncedAt) return false;
+    // 防止回退到更旧的快照（例如 raw 不通时退回 Pages 上的旧文件）
+    if (LIVE && new Date(live.syncedAt) < new Date(LIVE.syncedAt)) return false;
 
     LIVE = live;
     STRIPS = live.strips.map(function (s) {
