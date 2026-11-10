@@ -652,7 +652,7 @@
         var clear = taken.every(function (q) {
           return Math.hypot(q[0] - p[0], q[1] - (p[1] + 12)) > 30;
         });
-        if (clear) label(h + 'h', p[0], p[1] + 12);
+        if (clear) label((h < 10 ? '0' + h : '' + h) + 'h', p[0], p[1] + 12);
       }
     } else {
       for (var l = 0; l <= 330; l += 30) {
@@ -799,8 +799,8 @@
         '<div><dt>' + t('radio.type') + '</dt><dd>' + ro.type + '</dd></div>' +
         '<div><dt>RA</dt><dd>' + ro.ra.toFixed(3) + '° (' + fmtRA(ro.ra / 15) + ')</dd></div>' +
         '<div><dt>Dec</dt><dd>' + fmtDec(ro.dec) + '</dd></div>' +
-        '<div><dt>l</dt><dd>' + rg[0].toFixed(2) + '°</dd></div>' +
-        '<div><dt>b</dt><dd>' + fmtDeg(rg[1]) + '</dd></div>' +
+        '<div><dt>gl</dt><dd>' + rg[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>gb</dt><dd>' + fmtDeg(rg[1]) + '</dd></div>' +
         '</dl>' +
         '<div class="tt-note">' + ro.note +
         (ro.fastVisible ? '' : '<br><b>' + t('radio.noFAST') + '</b>') + '</div>';
@@ -813,8 +813,8 @@
         '<dl>' +
         '<div><dt>RA</dt><dd>' + fmtRA(s1.ra / 15) + '</dd></div>' +
         '<div><dt>Dec</dt><dd>' + fmtDec(s1.dec) + '</dd></div>' +
-        '<div><dt>l</dt><dd>' + g1[0].toFixed(2) + '°</dd></div>' +
-        '<div><dt>b</dt><dd>' + fmtDeg(g1[1]) + '</dd></div>' +
+        '<div><dt>gl</dt><dd>' + g1[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>gb</dt><dd>' + fmtDeg(g1[1]) + '</dd></div>' +
         '</dl>' +
         '<div class="tt-note">' + t('sun.note') + '</div>';
     }
@@ -827,8 +827,8 @@
         '<div><dt>' + t('radio.type') + '</dt><dd>' + ro2.type + '</dd></div>' +
         '<div><dt>RA</dt><dd>' + ro2.ra.toFixed(3) + '°</dd></div>' +
         '<div><dt>Dec</dt><dd>' + fmtDec(ro2.dec) + '</dd></div>' +
-        '<div><dt>l</dt><dd>' + rg2[0].toFixed(2) + '°</dd></div>' +
-        '<div><dt>b</dt><dd>' + fmtDeg(rg2[1]) + '</dd></div>' +
+        '<div><dt>gl</dt><dd>' + rg2[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>gb</dt><dd>' + fmtDeg(rg2[1]) + '</dd></div>' +
         '</dl>' +
         '<span class="tag">' + t('radio.tag') + '</span>' +
         (ro2.fastVisible ? '' : '<span class="tag warn">' + t('radio.noFAST') + '</span>') +
@@ -842,8 +842,8 @@
         '<dl>' +
         '<div><dt>RA</dt><dd>' + fmtRA(s2.ra / 15) + '</dd></div>' +
         '<div><dt>Dec</dt><dd>' + fmtDec(s2.dec) + '</dd></div>' +
-        '<div><dt>l</dt><dd>' + g2[0].toFixed(2) + '°</dd></div>' +
-        '<div><dt>b</dt><dd>' + fmtDeg(g2[1]) + '</dd></div>' +
+        '<div><dt>gl</dt><dd>' + g2[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>gb</dt><dd>' + fmtDeg(g2[1]) + '</dd></div>' +
         '</dl>' +
         '<span class="tag">' + t('sun.tag') + '</span>' +
         '</div>';
@@ -856,8 +856,8 @@
         '<dl>' +
         '<div><dt>RA</dt><dd>' + fmtRA(z.ra / 15) + '</dd></div>' +
         '<div><dt>Dec</dt><dd>' + fmtDec(z.dec) + '</dd></div>' +
-        '<div><dt>l</dt><dd>' + g[0].toFixed(2) + '°</dd></div>' +
-        '<div><dt>b</dt><dd>' + fmtDeg(g[1]) + '</dd></div>' +
+        '<div><dt>gl</dt><dd>' + g[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>gb</dt><dd>' + fmtDeg(g[1]) + '</dd></div>' +
         '</dl>' +
         '<div class="tt-note">' + t('zenith.note') + '</div>';
     }
@@ -900,8 +900,8 @@
         '<div><dt>' + t('radio.type') + '</dt><dd>' + ro2.type + '</dd></div>' +
         '<div><dt>RA</dt><dd>' + ro2.ra.toFixed(3) + '°</dd></div>' +
         '<div><dt>Dec</dt><dd>' + fmtDec(ro2.dec) + '</dd></div>' +
-        '<div><dt>l</dt><dd>' + rg2[0].toFixed(2) + '°</dd></div>' +
-        '<div><dt>b</dt><dd>' + fmtDeg(rg2[1]) + '</dd></div>' +
+        '<div><dt>gl</dt><dd>' + rg2[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>gb</dt><dd>' + fmtDeg(rg2[1]) + '</dd></div>' +
         '</dl>' +
         '<span class="tag">' + t('radio.tag') + '</span>' +
         (ro2.fastVisible ? '' : '<span class="tag warn">' + t('radio.noFAST') + '</span>') +
@@ -915,8 +915,8 @@
         '<dl>' +
         '<div><dt>RA</dt><dd>' + fmtRA(s2.ra / 15) + '</dd></div>' +
         '<div><dt>Dec</dt><dd>' + fmtDec(s2.dec) + '</dd></div>' +
-        '<div><dt>l</dt><dd>' + g2[0].toFixed(2) + '°</dd></div>' +
-        '<div><dt>b</dt><dd>' + fmtDeg(g2[1]) + '</dd></div>' +
+        '<div><dt>gl</dt><dd>' + g2[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>gb</dt><dd>' + fmtDeg(g2[1]) + '</dd></div>' +
         '</dl>' +
         '<span class="tag">' + t('sun.tag') + '</span>' +
         '</div>';
@@ -929,8 +929,8 @@
         '<dl>' +
         '<div><dt>RA</dt><dd>' + fmtRA(z.ra / 15) + '</dd></div>' +
         '<div><dt>Dec</dt><dd>' + fmtDec(z.dec) + '</dd></div>' +
-        '<div><dt>l</dt><dd>' + g[0].toFixed(2) + '°</dd></div>' +
-        '<div><dt>b</dt><dd>' + fmtDeg(g[1]) + '</dd></div>' +
+        '<div><dt>gl</dt><dd>' + g[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>gb</dt><dd>' + fmtDeg(g[1]) + '</dd></div>' +
         '</dl>' +
         '<span class="tag">' + t('zenith.tag') + '</span>' +
         '</div>';
@@ -1006,7 +1006,7 @@
         readout.textContent = 'RA ' + fmtRA(g.ra / 15) + ', Dec ' + fmtDec(g.dec);
       } else {
         var gal = A.eq2gal(g.ra, g.dec);
-        readout.textContent = 'l ' + gal[0].toFixed(1) + '°, b ' + gal[1].toFixed(1) + '°';
+        readout.textContent = 'gl ' + gal[0].toFixed(1) + '°, gb ' + gal[1].toFixed(1) + '°';
       }
     } else {
       readout.textContent = '—';
