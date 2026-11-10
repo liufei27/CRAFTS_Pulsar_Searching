@@ -35,7 +35,7 @@
 
   var state = {
     kind: 'eq',
-    layers: { plan: true, observed: true, atnf: true, pulsars: true, milky: true, grid: true, labels: true, za: true, zenith: true },
+    layers: { plan: true, observed: true, atnf: true, pulsars: true, milky: true, grid: true, labels: true, za: true, zenith: true, sun: true },
     hover: null,
     selected: null,
     view: { s: 1, tx: 0, ty: 0 },
@@ -67,6 +67,19 @@
 
   function zenithPoint() {
     return { ra: lstDeg(), dec: D.fastLat };
+  }
+
+  /** 当前时刻太阳的视位置（低精度公式，约 0.01° 量级） */
+  function sunPoint() {
+    var jd = Date.now() / 86400000 + 2440587.5;
+    var n = jd - 2451545.0;
+    var L = A.norm360(280.460 + 0.9856474 * n);
+    var g = A.norm360(357.528 + 0.9856003 * n) * A.D2R;
+    var lam = (L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * A.D2R;
+    var eps = (23.439 - 0.0000004 * n) * A.D2R;
+    var ra = Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam));
+    var dec = Math.asin(Math.sin(eps) * Math.sin(lam));
+    return { ra: A.norm360(ra * A.R2D), dec: dec * A.R2D };
   }
 
   /* ---------------- 几何 ---------------- */
@@ -262,12 +275,14 @@
     if (state.layers.pulsars) drawCatalog(v, PULSARS, 'rgba(255,120,120,0.85)', 1.9);
     if (state.layers.observed) drawObserved(v);
     if (state.layers.zenith) drawZenith(v);
+    if (state.layers.sun) drawSun(v);
     drawActive(v);
     drawFrame(v);
 
     ctx.restore();
 
     if (state.layers.zenith) drawZenithLabel();
+    if (state.layers.sun) drawSunLabel();
     if (state.layers.labels) drawLabels();
   }
 
@@ -427,7 +442,7 @@
 
   function drawActive(v) {
     var act = activeItem();
-    if (!act || act.type === 'zenith') return;
+    if (!act || act.type === 'zenith' || act.type === 'sun') return;
     var paths = [];
     if (act.type === 'plan') {
       paths.push(makeBand(state.proj, 0, 360, DECS[act.index], HALF_H, 2));
@@ -460,6 +475,25 @@
     ctx.strokeStyle = 'rgba(200,228,255,0.98)';
     ctx.lineWidth = 0.65 / v.s;
     ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawSun(v) {
+    var proj = state.proj;
+    var s0 = sunPoint();
+    var p = proj.project(s0.ra, s0.dec);
+    var r = 3.4 / v.s;
+    var twoPi = Math.PI * 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p[0], p[1], r, 0, twoPi);
+    ctx.fillStyle = 'rgba(255, 205, 92, 0.95)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(p[0], p[1], r + 1.6 / v.s, 0, twoPi);
+    ctx.strokeStyle = 'rgba(255, 205, 92, 0.55)';
+    ctx.lineWidth = 0.8 / v.s;
     ctx.stroke();
     ctx.restore();
   }
@@ -502,6 +536,22 @@
     ctx.strokeText(label, p[0] + 15, p[1] - 1);
     ctx.fillStyle = 'rgba(150,205,255,0.95)';
     ctx.fillText(label, p[0] + 15, p[1] - 1);
+  }
+
+  function drawSunLabel() {
+    var proj = state.proj;
+    if (!proj) return;
+    var s0 = sunPoint();
+    var p = toScreen(proj.project(s0.ra, s0.dec));
+    ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    ctx.font = '12px "Times New Roman", Times, "PingFang SC", serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(5,9,16,0.9)';
+    ctx.strokeText(t('canvas.sun'), p[0] + 8, p[1] - 10);
+    ctx.fillStyle = 'rgba(255,214,120,0.95)';
+    ctx.fillText(t('canvas.sun'), p[0] + 8, p[1] - 10);
   }
 
   function drawLabels() {
@@ -561,6 +611,18 @@
     var tolPx = 10;
     var myScreen = by * state.view.s + state.view.ty;
 
+    if (state.layers.sun) {
+      var sp = sunPoint();
+      var spx = proj.project(sp.ra, sp.dec);
+      var smx = bx * state.view.s + state.view.tx;
+      var smy = by * state.view.s + state.view.ty;
+      var ssx = spx[0] * state.view.s + state.view.tx;
+      var ssy = spx[1] * state.view.s + state.view.ty;
+      if (Math.sqrt((smx - ssx) * (smx - ssx) + (smy - ssy) * (smy - ssy)) <= 14) {
+        return { type: 'sun' };
+      }
+    }
+
     if (state.layers.zenith) {
       var z = zenithPoint();
       var zp = proj.project(z.ra, z.dec);
@@ -602,7 +664,7 @@
   function same(a, b) {
     if (!a || !b) return a === b;
     if (a.type !== b.type) return false;
-    if (a.type === 'zenith') return true;
+    if (a.type === 'zenith' || a.type === 'sun') return true;
     if (a.type === 'plan') return a.index === b.index;
     return a.strip === b.strip;
   }
@@ -632,6 +694,33 @@
 
   function tipHTML(hit) {
     if (!hit) return '';
+    if (hit.type === 'sun') {
+      var s1 = sunPoint();
+      var g1 = A.eq2gal(s1.ra, s1.dec);
+      return '' +
+        '<div class="tt-head"><span class="dot-sun"></span>' + t('sun.title') + '</div>' +
+        '<dl>' +
+        '<div><dt>RA</dt><dd>' + fmtRA(s1.ra / 15) + '</dd></div>' +
+        '<div><dt>Dec</dt><dd>' + fmtDec(s1.dec) + '</dd></div>' +
+        '<div><dt>l</dt><dd>' + g1[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>b</dt><dd>' + fmtDeg(g1[1]) + '</dd></div>' +
+        '</dl>' +
+        '<div class="tt-note">' + t('sun.note') + '</div>';
+    }
+    if (hit.type === 'sun') {
+      var s2 = sunPoint();
+      var g2 = A.eq2gal(s2.ra, s2.dec);
+      return '<div class="info">' +
+        '<h3><span class="dot-sun"></span>' + t('sun.title') + '</h3>' +
+        '<dl>' +
+        '<div><dt>RA</dt><dd>' + fmtRA(s2.ra / 15) + '</dd></div>' +
+        '<div><dt>Dec</dt><dd>' + fmtDec(s2.dec) + '</dd></div>' +
+        '<div><dt>l</dt><dd>' + g2[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>b</dt><dd>' + fmtDeg(g2[1]) + '</dd></div>' +
+        '</dl>' +
+        '<span class="tag">' + t('sun.tag') + '</span>' +
+        '</div>';
+    }
     if (hit.type === 'zenith') {
       var z = zenithPoint();
       var g = A.eq2gal(z.ra, z.dec);
@@ -674,6 +763,20 @@
   function infoHTML(hit) {
     if (!hit) {
       return '<div class="info-empty">' + t('info.empty') + '</div>';
+    }
+    if (hit.type === 'sun') {
+      var s2 = sunPoint();
+      var g2 = A.eq2gal(s2.ra, s2.dec);
+      return '<div class="info">' +
+        '<h3><span class="dot-sun"></span>' + t('sun.title') + '</h3>' +
+        '<dl>' +
+        '<div><dt>RA</dt><dd>' + fmtRA(s2.ra / 15) + '</dd></div>' +
+        '<div><dt>Dec</dt><dd>' + fmtDec(s2.dec) + '</dd></div>' +
+        '<div><dt>l</dt><dd>' + g2[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>b</dt><dd>' + fmtDeg(g2[1]) + '</dd></div>' +
+        '</dl>' +
+        '<span class="tag">' + t('sun.tag') + '</span>' +
+        '</div>';
     }
     if (hit.type === 'zenith') {
       var z = zenithPoint();

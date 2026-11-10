@@ -491,3 +491,12 @@ html, body {
   background: rgba(95,168,255,.16);
   color: #cfe4ff;
 }
+
+.dot-sun {
+  width: 9px; height: 9px;
+  flex: 0 0 9px;
+  border-radius: 50%;
+  background: rgba(255, 205, 92, .95);
+  box-shadow: 0 0 8px rgba(255, 205, 92, .6);
+  display: inline-block;
+}
