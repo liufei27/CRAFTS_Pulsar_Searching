@@ -479,8 +479,28 @@
     ctx.restore();
   }
 
+  var ECLIPTIC = (function () {
+    var eps = 23.439 * A.D2R, pts = [];
+    for (var d = 0; d <= 360; d += 2) {
+      var lam = d * A.D2R;
+      var ra = Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam));
+      var dec = Math.asin(Math.sin(eps) * Math.sin(lam));
+      pts.push([A.norm360(ra * A.R2D), dec * A.R2D]);
+    }
+    return pts;
+  })();
+
   function drawSun(v) {
     var proj = state.proj;
+
+    // 太阳周年视运动轨迹（黄道），浅黄虚线
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 214, 120, 0.45)';
+    ctx.lineWidth = 1 / v.s;
+    ctx.setLineDash([5 / v.s, 4 / v.s]);
+    strokeWrapped(proj, ECLIPTIC);
+    ctx.restore();
+
     var s0 = sunPoint();
     var p = proj.project(s0.ra, s0.dec);
     var r = 3.4 / v.s;
