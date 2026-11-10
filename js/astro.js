@@ -129,6 +129,13 @@
         return { ra: eq[0], dec: eq[1] };
       },
 
+      /** 投影边界上某纬度对应的点（side: 'left' | 'right'），用于把刻度放到天球外 */
+      edge: function (latDeg, side) {
+        var th = mollweideTheta(latDeg * D2R);
+        var sign = side === 'left' ? -1 : 1;
+        return [cx + sign * Math.cos(th) * Xmax, cy - Math.sin(th) * Ymax];
+      },
+
       /** Mollweide 投影的边界椭圆（用于画外框） */
       outline: function () {
         var pts = [], i, th;

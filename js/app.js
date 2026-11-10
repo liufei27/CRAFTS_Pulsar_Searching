@@ -514,8 +514,8 @@
     if (state.kind === 'eq') {
       var taken = [];
       for (var d0 = -60; d0 <= 60; d0 += 30) {
-        p = toScreen(proj.project(359.99, d0));
-        label((d0 > 0 ? '+' : '') + d0 + '°', p[0] - 8, p[1], 'right');
+        p = toScreen(proj.edge(d0, 'left'));
+        label((d0 > 0 ? '+' : '') + d0 + '°', p[0] - 10, p[1], 'right');
         taken.push(p);
       }
       for (var h = 0; h <= 24; h += 2) {
@@ -532,9 +532,8 @@
         label(l + '°', p[0], p[1] + 13);
       }
       for (var b = -60; b <= 60; b += 30) {
-        eq = A.gal2eq(180, b);
-        p = toScreen(proj.project(eq[0], eq[1]));
-        label((b > 0 ? '+' : '') + b + '°', p[0] - 8, p[1], 'right');
+        p = toScreen(proj.edge(b, 'left'));
+        label((b > 0 ? '+' : '') + b + '°', p[0] - 10, p[1], 'right');
       }
     }
   }
