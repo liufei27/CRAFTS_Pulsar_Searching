@@ -1108,7 +1108,9 @@
   function buildList() {
     var ul = $('#striplist');
     ul.innerHTML = sortedStrips().map(function (s) {
+      var pct = s.beams ? Math.round(s.done / s.beams * 100) : 0;
       return '<li data-id="' + s.id + '">' +
+        '<i class="bar" style="width:' + pct + '%"></i>' +
         '<span class="dot ' + s.status + '"></span>' +
         '<span class="sid">' + s.id + '</span>' +
         '<span class="smeta">' + (s.done + '/' + s.beams) + '</span>' +

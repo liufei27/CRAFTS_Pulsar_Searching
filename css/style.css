@@ -222,6 +222,8 @@ html, body {
 .striplist::-webkit-scrollbar-thumb { background: #22314d; border-radius: 3px; }
 .striplist::-webkit-scrollbar-track { background: transparent; }
 .striplist li {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -237,6 +239,16 @@ html, body {
 .striplist li.active {
   border-color: var(--accent);
   background: rgba(95,168,255,.10);
+}
+.striplist li > * { position: relative; z-index: 1; }
+.striplist li .bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  z-index: 0;
+  background: rgba(95, 168, 255, .16);
+  border-right: 1px solid rgba(95, 168, 255, .38);
+  transition: width .25s ease;
+  pointer-events: none;
 }
 .striplist li .sid { font-size: 14px; font-weight: 500; }
 .striplist li .smeta {
