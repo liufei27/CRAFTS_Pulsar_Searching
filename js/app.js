@@ -258,7 +258,7 @@
     if (state.layers.za) drawZA(v);
     if (state.layers.plan) drawPlan(v);
     if (state.layers.atnf) drawCatalog(v, ATNF, 'rgba(170,180,200,0.6)', 1.3);
-    if (state.layers.pulsars) drawCatalog(v, PULSARS, 'rgba(255,120,120,0.85)', 1.3);
+    if (state.layers.pulsars) drawCatalog(v, PULSARS, 'rgba(255,120,120,0.85)', 1.9);
     if (state.layers.observed) drawObserved(v);
     if (state.layers.zenith) drawZenith(v);
     drawActive(v);
