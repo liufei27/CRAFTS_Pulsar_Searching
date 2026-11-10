@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CRAFTS 条带天区查询 · FAST 19 波束漂移扫描</title>
-<link rel="stylesheet" href="css/style.css?v=20261110h">
+<link rel="stylesheet" href="css/style.css?v=20261110i">
 </head>
 <body>
 <div class="app">
@@ -112,13 +112,17 @@
   window.CRAFTS_CONFIG = {
     // 静态托管上没有后端，按钮改为隐藏；本机/自建服务器保留「立即同步」
     syncEndpoint: IS_STATIC ? null
-      : (location.protocol === 'file:' ? 'http://127.0.0.1:8765' : '')
+      : (location.protocol === 'file:' ? 'http://127.0.0.1:8765' : ''),
+    // 公网页面的数据走 data 分支（raw 直出，推送后 1-2 秒可用），绕开 Pages 构建队列
+    liveUrl: IS_STATIC
+      ? 'https://raw.githubusercontent.com/liufei27/CRAFTS_Pulsar_Searching/data/live.json'
+      : null
   };
 </script>
-<script src="js/data.js?v=20261110h"></script>
-<script src="js/live.js?v=20261110h"></script>
-<script src="js/i18n.js?v=20261110h"></script>
-<script src="js/astro.js?v=20261110h"></script>
-<script src="js/app.js?v=20261110h"></script>
+<script src="js/data.js?v=20261110i"></script>
+<script src="js/live.js?v=20261110i"></script>
+<script src="js/i18n.js?v=20261110i"></script>
+<script src="js/astro.js?v=20261110i"></script>
+<script src="js/app.js?v=20261110i"></script>
 </body>
 </html>

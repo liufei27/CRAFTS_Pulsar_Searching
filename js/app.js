@@ -1015,7 +1015,7 @@
       });
   }
 
-  function pollLive() {
+  function loadLiveScript() {
     var s = document.createElement('script');
     s.src = 'js/live.js?t=' + Date.now();
     s.onload = function () {
@@ -1024,6 +1024,17 @@
     };
     s.onerror = function () { if (s.parentNode) s.parentNode.removeChild(s); };
     document.head.appendChild(s);
+  }
+
+  function pollLive() {
+    var cfg = window.CRAFTS_CONFIG || {};
+    var url = cfg.liveUrl;
+    if (!url) { loadLiveScript(); return; }
+
+    fetch(url + '?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (json) { applyLive(json); })
+      .catch(function () { loadLiveScript(); });   // 公网 CDN 不通时退回同站文件
   }
 
   /* ---------------- UI ---------------- */
