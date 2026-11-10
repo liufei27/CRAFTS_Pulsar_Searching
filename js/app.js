@@ -989,11 +989,25 @@
     if (btn) btn.classList.add('spin');
     setSyncText(t('sync.syncing'), 'busy');
 
+    var cfg = window.CRAFTS_CONFIG || {};
+
+    // 公网静态版：没有后端，点一下就把最新数据拉下来
+    if (cfg.syncEndpoint === null) {
+      var before = LIVE && LIVE.syncedAt;
+      setSyncText(t('sync.reloading'), 'busy');
+      fetchLive().then(function () {
+        if (LIVE && LIVE.syncedAt === before) setSyncText(t('sync.uptodate'), 'ok');
+        state.syncing = false;
+        if (btn) btn.classList.remove('spin');
+      });
+      return;
+    }
+
     var ctrl = window.AbortController ? new AbortController() : null;
     var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 120000) : null;
 
-    var base = (window.CRAFTS_CONFIG && window.CRAFTS_CONFIG.syncEndpoint !== undefined)
-      ? window.CRAFTS_CONFIG.syncEndpoint
+    var base = (cfg.syncEndpoint !== undefined)
+      ? cfg.syncEndpoint
       : (location.protocol === 'file:' ? 'http://127.0.0.1:8765' : '');
     fetch(base + '/api/sync',
           { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
@@ -1026,16 +1040,44 @@
     document.head.appendChild(s);
   }
 
-  function pollLive() {
+  function fetchLive() {
     var cfg = window.CRAFTS_CONFIG || {};
     var url = cfg.liveUrl;
-    if (!url) { loadLiveScript(); return; }
-
-    fetch(url + '?t=' + Date.now(), { cache: 'no-store' })
+    if (!url) {
+      return new Promise(function (resolve) {
+        var s = document.createElement('script');
+        s.src = 'js/live.js?t=' + Date.now();
+        s.onload = function () {
+          applyLive(window.CRAFTS_LIVE);
+          if (s.parentNode) s.parentNode.removeChild(s);
+          resolve(true);
+        };
+        s.onerror = function () {
+          if (s.parentNode) s.parentNode.removeChild(s);
+          resolve(false);
+        };
+        document.head.appendChild(s);
+      });
+    }
+    return fetch(url + '?t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (json) { applyLive(json); })
-      .catch(function () { loadLiveScript(); });   // 公网 CDN 不通时退回同站文件
+      .then(function (json) { applyLive(json); return true; })
+      .catch(function () {
+        return new Promise(function (resolve) {
+          var s = document.createElement('script');
+          s.src = 'js/live.js?t=' + Date.now();
+          s.onload = function () {
+            applyLive(window.CRAFTS_LIVE);
+            if (s.parentNode) s.parentNode.removeChild(s);
+            resolve(true);
+          };
+          s.onerror = function () { if (s.parentNode) s.parentNode.removeChild(s); resolve(false); };
+          document.head.appendChild(s);
+        });
+      });
   }
+
+  function pollLive() { fetchLive(); }
 
   /* ---------------- UI ---------------- */
 
@@ -1095,13 +1137,7 @@
     });
     $('#q').addEventListener('input', function (e) { renderSuggest(e.target.value); });
 
-    var cfg = window.CRAFTS_CONFIG;
-    if (cfg && cfg.syncEndpoint === null) {
-      var rb = document.getElementById('refresh');
-      if (rb) rb.style.display = 'none';
-    } else {
-      $('#refresh').addEventListener('click', refreshFromDocs);
-    }
+    $('#refresh').addEventListener('click', refreshFromDocs);
     $('#zoomIn').addEventListener('click', function () { zoomAt(state.W / 2, state.H / 2, 1.45); });
     $('#zoomOut').addEventListener('click', function () { zoomAt(state.W / 2, state.H / 2, 1 / 1.45); });
     $('#reset').addEventListener('click', function () { resetView(); });
