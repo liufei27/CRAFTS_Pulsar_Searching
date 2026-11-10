@@ -44,6 +44,7 @@
     W: 0,
     H: 0,
     syncing: false,
+    checkedAt: 0,
     sort: 'desc'
   };
 
@@ -952,7 +953,14 @@
       var pad = function (n) { return (n < 10 ? '0' : '') + n; };
       var time = pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' +
                  pad(d.getHours()) + ':' + pad(d.getMinutes());
-      el.innerHTML = '<i class="dot-live"></i><span>' + t('foot.sync.on') + ' ' + time + '</span>';
+      var chk = state.checkedAt
+        ? (function () {
+            var c = new Date(state.checkedAt);
+            return pad(c.getHours()) + ':' + pad(c.getMinutes());
+          })()
+        : '—';
+      el.innerHTML = '<i class="dot-live"></i><span>' + t('foot.sync.on') + ' ' + time +
+        ' · ' + t('foot.sync.check') + ' ' + chk + '</span>';
     } else {
       el.innerHTML = '<i class="dot-off"></i><span>' + t('foot.sync.none') + '</span>';
     }
@@ -1050,6 +1058,8 @@
         s.src = 'js/live.js?t=' + Date.now();
         s.onload = function () {
           applyLive(window.CRAFTS_LIVE);
+          state.checkedAt = Date.now();
+          updateSyncLabel();
           if (s.parentNode) s.parentNode.removeChild(s);
           resolve(true);
         };
@@ -1062,7 +1072,12 @@
     }
     return fetch(url + '?t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { return r.json(); })
-      .then(function (json) { applyLive(json); return true; })
+      .then(function (json) {
+        applyLive(json);
+        state.checkedAt = Date.now();
+        updateSyncLabel();
+        return true;
+      })
       .catch(function () {
         return new Promise(function (resolve) {
           var s = document.createElement('script');
@@ -1276,7 +1291,11 @@
   }
 
   setInterval(schedule, 60000);              // 天顶位置每分钟刷新
-  setInterval(pollLive, 30000);              // 每 30 秒检查一次最新数据
+  pollLive();                                // 启动即取一次，避免先显示旧快照
+  setInterval(pollLive, 15000);              // 之后每 15 秒检查一次
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) pollLive();        // 切回标签页立即刷新
+  });
   applyLive(window.CRAFTS_LIVE);
   buildList();
   bindUI();
