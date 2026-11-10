@@ -619,7 +619,7 @@
     var hh = Math.floor(h);
     var mm = Math.round((h - hh) * 60);
     if (mm === 60) { hh = (hh + 1) % 24; mm = 0; }
-    return hh + 'h' + (mm < 10 ? '0' + mm : mm);
+    return (hh < 10 ? '0' + hh : hh) + 'h' + (mm < 10 ? '0' + mm : mm);
   }
 
   function fmtDec(dec) {
@@ -758,10 +758,10 @@
     var readout = $('#coords');
     if (g) {
       if (state.kind === 'eq') {
-        readout.textContent = 'RA ' + fmtRA(g.ra / 15) + ' · Dec ' + fmtDec(g.dec);
+        readout.textContent = 'RA ' + fmtRA(g.ra / 15) + ', Dec ' + fmtDec(g.dec);
       } else {
         var gal = A.eq2gal(g.ra, g.dec);
-        readout.textContent = 'l ' + gal[0].toFixed(1) + '° · b ' + gal[1].toFixed(1) + '°';
+        readout.textContent = 'l ' + gal[0].toFixed(1) + '°, b ' + gal[1].toFixed(1) + '°';
       }
     } else {
       readout.textContent = '—';
