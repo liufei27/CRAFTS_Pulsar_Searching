@@ -101,7 +101,7 @@ html, body {
 }
 .brand-sub { margin: 6px 0 0; color: var(--muted); font-size: 13.5px; }
 
-.block { margin-bottom: 7px; }
+.block { margin-bottom: 6px; }
 
 .label {
   display: flex;
@@ -110,7 +110,7 @@ html, body {
   font-size: 13px;
   letter-spacing: .08em;
   color: var(--muted);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 .count {
   color: var(--accent);
@@ -214,7 +214,7 @@ html, body {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 176px;      /* 条带可能越来越多，列表内部滚动，避免把侧栏撑爆 */
+  max-height: 120px;      /* 条带可能越来越多，列表内部滚动，避免把侧栏撑爆 */
   overflow-y: auto;
   padding-right: 2px;
 }
@@ -499,4 +499,74 @@ html, body {
   background: rgba(255, 205, 92, .95);
   box-shadow: 0 0 8px rgba(255, 205, 92, .6);
   display: inline-block;
+}
+
+.sublayer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 5px;
+  padding: 5px;
+  border: 1px solid #1b2842;
+  border-radius: 8px;
+  background: rgba(10, 18, 33, .6);
+}
+.rpill {
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid #2a4a6e;
+  background: rgba(120, 226, 255, .10);
+  color: #a8e6ff;
+  font-size: 10.5px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: opacity .15s, border-color .15s;
+}
+.rpill:hover { border-color: #6fc7e8; }
+.rpill.off {
+  opacity: .38;
+  border-style: dashed;
+  background: transparent;
+  color: #7f90ae;
+}
+.dot-radio {
+  width: 10px; height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(140, 232, 255, .95);
+  background: rgba(120, 226, 255, .2);
+  display: inline-block;
+}
+
+.sub-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 3px 4px;
+  border: 0;
+  background: transparent;
+  color: #8fb6d6;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+}
+.sub-toggle:hover { color: #cfe4ff; }
+.sub-toggle .caret { margin-left: auto; opacity: .7; }
+.sub-body {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.sub-body::-webkit-scrollbar { height: 3px; }
+.sub-body::-webkit-scrollbar-thumb { background: #22314d; border-radius: 2px; }
+.rpill { flex: 0 0 auto; }
+
+.info .tag.warn {
+  background: rgba(255, 170, 90, .12);
+  border-color: rgba(255, 170, 90, .38);
+  color: #ffc98a;
+  margin-left: 6px;
 }

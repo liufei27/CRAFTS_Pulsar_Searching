@@ -16,6 +16,16 @@
   var LIVE = null;
   var PULSARS = D.pulsars || [];
   var ATNF = D.atnf || [];
+  var RADIO = (D.radio || []).map(function (o) {
+    var p1 = o.ra.split(':'), p2 = o.dec.replace('−', '-').split(':');
+    var sign = p2[0].charAt(0) === '-' ? -1 : 1;
+    return {
+      id: o.id, zh: o.zh, en: o.en, type: o.type, note: o.note,
+      fastVisible: o.fastVisible !== false,
+      ra: A.norm360(15 * (Math.abs(+p1[0]) + p1[1] / 60 + (+p1[2] || 0) / 3600)),
+      dec: sign * (Math.abs(+p2[0]) + p2[1] / 60 + (+(p2[2] || 0)) / 3600)
+    };
+  });
   var t = window.I18N.t;
 
   var STATUS_COLOR = {
@@ -35,7 +45,7 @@
 
   var state = {
     kind: 'eq',
-    layers: { plan: true, observed: true, atnf: true, pulsars: true, milky: true, grid: true, labels: true, za: true, zenith: true, sun: true },
+    layers: { plan: true, observed: true, atnf: true, pulsars: true, milky: true, grid: true, labels: true, za: true, zenith: true, sun: true, radio: true },
     hover: null,
     selected: null,
     view: { s: 1, tx: 0, ty: 0 },
@@ -45,7 +55,8 @@
     H: 0,
     syncing: false,
     checkedAt: 0,
-    sort: 'desc'
+    sort: 'desc',
+    radioSel: {}
   };
 
   var planPath = null;
@@ -276,6 +287,7 @@
     if (state.layers.observed) drawObserved(v);
     if (state.layers.zenith) drawZenith(v);
     if (state.layers.sun) drawSun(v);
+    if (state.layers.radio) drawRadio(v);
     drawActive(v);
     drawFrame(v);
 
@@ -283,6 +295,7 @@
 
     if (state.layers.zenith) drawZenithLabel();
     if (state.layers.sun) drawSunLabel();
+    if (state.layers.radio) drawRadioLabels();
     if (state.layers.labels) drawLabels();
   }
 
@@ -442,7 +455,7 @@
 
   function drawActive(v) {
     var act = activeItem();
-    if (!act || act.type === 'zenith' || act.type === 'sun') return;
+    if (!act || act.type === 'zenith' || act.type === 'sun' || act.type === 'radio') return;
     var paths = [];
     if (act.type === 'plan') {
       paths.push(makeBand(state.proj, 0, 360, DECS[act.index], HALF_H, 2));
@@ -516,6 +529,52 @@
     ctx.lineWidth = 0.8 / v.s;
     ctx.stroke();
     ctx.restore();
+  }
+
+  function drawRadio(v) {
+    var proj = state.proj;
+    var r = 3 / v.s;
+    ctx.save();
+    RADIO.forEach(function (o) {
+      if (state.radioSel[o.id] === false) return;
+      var p = proj.project(o.ra, o.dec);
+      ctx.beginPath();
+      ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(120, 226, 255, 0.20)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(140, 232, 255, 0.95)';
+      ctx.lineWidth = 1.1 / v.s;
+      ctx.stroke();
+      // 十字标记
+      ctx.beginPath();
+      ctx.moveTo(p[0] - r * 1.9, p[1]); ctx.lineTo(p[0] - r * 0.9, p[1]);
+      ctx.moveTo(p[0] + r * 0.9, p[1]); ctx.lineTo(p[0] + r * 1.9, p[1]);
+      ctx.moveTo(p[0], p[1] - r * 1.9); ctx.lineTo(p[0], p[1] - r * 0.9);
+      ctx.moveTo(p[0], p[1] + r * 0.9); ctx.lineTo(p[0], p[1] + r * 1.9);
+      ctx.strokeStyle = 'rgba(140, 232, 255, 0.75)';
+      ctx.lineWidth = 0.9 / v.s;
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawRadioLabels() {
+    var proj = state.proj;
+    if (!proj) return;
+    ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+    ctx.font = '11px "Times New Roman", Times, "PingFang SC", serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    RADIO.forEach(function (o) {
+      if (state.radioSel[o.id] === false) return;
+      var p = toScreen(proj.project(o.ra, o.dec));
+      var name = (window.I18N && I18N.lang === 'en') ? o.en : o.zh;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(5,9,16,0.9)';
+      ctx.strokeText(name, p[0] + 9, p[1] + 9);
+      ctx.fillStyle = 'rgba(170, 235, 255, 0.9)';
+      ctx.fillText(name, p[0] + 9, p[1] + 9);
+    });
   }
 
   function drawFrame(v) {
@@ -631,6 +690,22 @@
     var tolPx = 10;
     var myScreen = by * state.view.s + state.view.ty;
 
+    if (state.layers.radio) {
+      var hitSrc = null;
+      RADIO.forEach(function (o) {
+        if (state.radioSel[o.id] === false || hitSrc) return;
+        var rp = proj.project(o.ra, o.dec);
+        var rmx = bx * state.view.s + state.view.tx;
+        var rmy = by * state.view.s + state.view.ty;
+        var rrx = rp[0] * state.view.s + state.view.tx;
+        var rry = rp[1] * state.view.s + state.view.ty;
+        if (Math.sqrt((rmx - rrx) * (rmx - rrx) + (rmy - rry) * (rmy - rry)) <= 13) {
+          hitSrc = { type: 'radio', src: o };
+        }
+      });
+      if (hitSrc) return hitSrc;
+    }
+
     if (state.layers.sun) {
       var sp = sunPoint();
       var spx = proj.project(sp.ra, sp.dec);
@@ -685,6 +760,7 @@
     if (!a || !b) return a === b;
     if (a.type !== b.type) return false;
     if (a.type === 'zenith' || a.type === 'sun') return true;
+    if (a.type === 'radio') return a.src === b.src;
     if (a.type === 'plan') return a.index === b.index;
     return a.strip === b.strip;
   }
@@ -714,6 +790,21 @@
 
   function tipHTML(hit) {
     if (!hit) return '';
+    if (hit.type === 'radio') {
+      var ro = hit.src, rg = A.eq2gal(ro.ra, ro.dec);
+      return '' +
+        '<div class="tt-head"><span class="dot-radio"></span>' +
+        ((window.I18N && I18N.lang === 'en') ? ro.en : ro.zh) + '</div>' +
+        '<dl>' +
+        '<div><dt>' + t('radio.type') + '</dt><dd>' + ro.type + '</dd></div>' +
+        '<div><dt>RA</dt><dd>' + ro.ra.toFixed(3) + '° (' + fmtRA(ro.ra / 15) + ')</dd></div>' +
+        '<div><dt>Dec</dt><dd>' + fmtDec(ro.dec) + '</dd></div>' +
+        '<div><dt>l</dt><dd>' + rg[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>b</dt><dd>' + fmtDeg(rg[1]) + '</dd></div>' +
+        '</dl>' +
+        '<div class="tt-note">' + ro.note +
+        (ro.fastVisible ? '' : '<br><b>' + t('radio.noFAST') + '</b>') + '</div>';
+    }
     if (hit.type === 'sun') {
       var s1 = sunPoint();
       var g1 = A.eq2gal(s1.ra, s1.dec);
@@ -726,6 +817,22 @@
         '<div><dt>b</dt><dd>' + fmtDeg(g1[1]) + '</dd></div>' +
         '</dl>' +
         '<div class="tt-note">' + t('sun.note') + '</div>';
+    }
+    if (hit.type === 'radio') {
+      var ro2 = hit.src, rg2 = A.eq2gal(ro2.ra, ro2.dec);
+      return '<div class="info">' +
+        '<h3><span class="dot-radio"></span>' +
+        ((window.I18N && I18N.lang === 'en') ? ro2.en : ro2.zh) + '</h3>' +
+        '<dl>' +
+        '<div><dt>' + t('radio.type') + '</dt><dd>' + ro2.type + '</dd></div>' +
+        '<div><dt>RA</dt><dd>' + ro2.ra.toFixed(3) + '°</dd></div>' +
+        '<div><dt>Dec</dt><dd>' + fmtDec(ro2.dec) + '</dd></div>' +
+        '<div><dt>l</dt><dd>' + rg2[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>b</dt><dd>' + fmtDeg(rg2[1]) + '</dd></div>' +
+        '</dl>' +
+        '<span class="tag">' + t('radio.tag') + '</span>' +
+        (ro2.fastVisible ? '' : '<span class="tag warn">' + t('radio.noFAST') + '</span>') +
+        '</div>';
     }
     if (hit.type === 'sun') {
       var s2 = sunPoint();
@@ -783,6 +890,22 @@
   function infoHTML(hit) {
     if (!hit) {
       return '<div class="info-empty">' + t('info.empty') + '</div>';
+    }
+    if (hit.type === 'radio') {
+      var ro2 = hit.src, rg2 = A.eq2gal(ro2.ra, ro2.dec);
+      return '<div class="info">' +
+        '<h3><span class="dot-radio"></span>' +
+        ((window.I18N && I18N.lang === 'en') ? ro2.en : ro2.zh) + '</h3>' +
+        '<dl>' +
+        '<div><dt>' + t('radio.type') + '</dt><dd>' + ro2.type + '</dd></div>' +
+        '<div><dt>RA</dt><dd>' + ro2.ra.toFixed(3) + '°</dd></div>' +
+        '<div><dt>Dec</dt><dd>' + fmtDec(ro2.dec) + '</dd></div>' +
+        '<div><dt>l</dt><dd>' + rg2[0].toFixed(2) + '°</dd></div>' +
+        '<div><dt>b</dt><dd>' + fmtDeg(rg2[1]) + '</dd></div>' +
+        '</dl>' +
+        '<span class="tag">' + t('radio.tag') + '</span>' +
+        (ro2.fastVisible ? '' : '<span class="tag warn">' + t('radio.noFAST') + '</span>') +
+        '</div>';
     }
     if (hit.type === 'sun') {
       var s2 = sunPoint();
@@ -1227,6 +1350,20 @@
     });
   }
 
+  function buildRadioList() {
+    var box = document.getElementById('radioList');
+    if (!box) return;
+    var en = window.I18N && I18N.lang === 'en';
+    box.innerHTML =
+      '<div class="sub-body">' +
+        RADIO.map(function (o) {
+          return '<button class="rpill' + (state.radioSel[o.id] === false ? ' off' : '') +
+            '" data-src="' + o.id + '">' + (en ? o.en : o.zh) + '</button>';
+        }).join('') +
+      '</div>';
+    box.hidden = !state.layers.radio;
+  }
+
   function buildList() {
     var ul = $('#striplist');
     ul.innerHTML = sortedStrips().map(function (s) {
@@ -1272,6 +1409,7 @@
       var k = b.dataset.layer;
       state.layers[k] = !state.layers[k];
       b.classList.toggle('on', state.layers[k]);
+      if (k === 'radio') buildRadioList();
       state.hover = null;
       tooltip.classList.remove('show');
       schedule();
@@ -1286,6 +1424,18 @@
     $('#q').addEventListener('input', function (e) { renderSuggest(e.target.value); });
 
     $('#refresh').addEventListener('click', refreshFromDocs);
+
+    var radioBox = document.getElementById('radioList');
+    if (radioBox) {
+      radioBox.addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-src]');
+        if (!b) return;
+        var id = b.getAttribute('data-src');
+        state.radioSel[id] = state.radioSel[id] === false;
+        b.classList.toggle('off', state.radioSel[id] === false);
+        schedule();
+      });
+    }
 
     var sortBox = document.getElementById('sort');
     if (sortBox) {
@@ -1393,6 +1543,7 @@
       $('#stageTitle').textContent = t(state.kind === 'eq' ? 'stage.eq' : 'stage.gal');
       $('#obsCount').textContent = STRIPS.length + ' ' + t('unit.strips');
       updateSyncLabel();
+      buildRadioList();
       updateInfo();
       if (state.hover) tooltip.innerHTML = tipHTML(state.hover);
       schedule();
@@ -1424,6 +1575,7 @@
   });
   applyLive(window.CRAFTS_LIVE);
   buildList();
+  buildRadioList();
   bindUI();
   bindLang();
   window.I18N.apply();
